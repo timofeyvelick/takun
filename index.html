@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Личный архив takun.space">
+<meta name="description" content="Личный архив Тимофея — работа, жизнь, друзья, путешествия.">
+<meta name="theme-color" content="#dceafa">
 <title>takun.space — архив</title>
 
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%23247ad6'/><text x='50' y='68' font-family='sans-serif' font-size='58' font-weight='700' fill='white' text-anchor='middle'>t</text></svg>">
@@ -15,6 +16,8 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<div class="progress-bar" id="progress-bar"></div>
 
 <header>
   <div class="header-inner">
@@ -101,13 +104,17 @@
       <p>Небольшой личный архив.</p>
     </div>
     <div class="about-content glass">
-      <p><strong>Привет.</strong> Это мой личный архив — фотографии, работы и моменты, которые я хочу сохранить. Здесь нет рекламы, соцсетей и алгоритмов. Только я и то, что мне дорого.</p>
+      <p><strong>Привет, я Тимофей.</strong></p>
 
-      <p>Публичный раздел открыт для всех. Внутри — четыре категории: <em>Работа</em>, <em>Жизнь</em>, <em>Друзья</em> и <em>Путешествия</em>.</p>
+      <p>Это мой интернет-архив — личное место в сети, где я собираю то, что хочу сохранить. Здесь нет рекламы, алгоритмов и бесконечной ленты. Только кадры, которые для меня что-то значат.</p>
 
-      <p>Приватный раздел — только для своих. Если ты считаешь, что тебе туда можно, загляни в раздел <a href="#private">Приватное</a> и оставь заявку — я посмотрю и открою доступ.</p>
+      <p><strong>Что внутри.</strong> Четыре публичных раздела: <em>Работа</em> — проекты, эскизы и процессы. <em>Жизнь</em> — повседневные моменты и плёночные кадры. <em>Друзья</em> — люди, которые рядом. <em>Путешествия</em> — места, куда занесло.</p>
 
-      <p class="muted">takun.space · архив обновляется по настроению.</p>
+      <p><strong>Приватный раздел.</strong> Часть архива закрыта — там фотографии, которые я не хочу показывать всем. Если ты меня знаешь — попроси у меня код доступа. Получишь — вставь на странице <a href="#private">Приватное</a>.</p>
+
+      <p><strong>Зачем всё это.</strong> Мне нравится идея, что в интернете есть уголок, который принадлежит только мне. Просто архив. Если ты здесь — добро пожаловать.</p>
+
+      <p class="muted">takun.space · обновляется по настроению.</p>
     </div>
   </section>
 
@@ -127,7 +134,6 @@
         <button class="btn btn-primary" id="unlock-btn">Войти</button>
       </div>
       <div class="password-hint" id="password-hint">Неверный пароль. Попробуйте ещё раз.</div>
-      <p class="lock-note">Скоро здесь появится вход по email через Cloudflare Access — оставишь заявку, я одобрю.</p>
     </div>
 
     <div id="private-content" style="display:none">

@@ -39,6 +39,19 @@ function makePlaceholder(seed, label) {
 }
 
 // ============================================================
+// СОРТИРОВКА ПО ДАТЕ (от новых к старым)
+// ============================================================
+// Используем поле "added" (формат YYYY-MM-DD).
+// Если его нет — фото уходит в конец.
+function sortByDate(photos) {
+  return [...photos].sort((a, b) => {
+    const dateA = a.added ? new Date(a.added).getTime() : 0;
+    const dateB = b.added ? new Date(b.added).getTime() : 0;
+    return dateB - dateA;
+  });
+}
+
+// ============================================================
 // ТЕМА
 // ============================================================
 const THEME_KEY = 'takun_theme';
@@ -139,7 +152,6 @@ function isNew(photo) {
 
 function renderCard(photo) {
   const newBadge = isNew(photo) ? '<span class="badge-new">Новое</span>' : '';
-  // Используем data-src для ленивой загрузки, чтобы не грузить всё сразу
   return `
     <button class="archive-item" data-id="${photo.id}">
       <span class="tag">${photo.tag}</span>
@@ -158,11 +170,9 @@ function renderGrid(containerId, photos) {
   if (!el) return;
   el.innerHTML = photos.map(renderCard).join('');
 
-  // Подключаем ленивую загрузку
   if (lazyObserver) {
     el.querySelectorAll('img[data-src]').forEach(img => lazyObserver.observe(img));
   } else {
-    // Фолбэк: загружаем всё сразу
     el.querySelectorAll('img[data-src]').forEach(img => {
       img.src = img.dataset.src;
       img.removeAttribute('data-src');
@@ -184,13 +194,14 @@ let currentLightboxIndex = -1;
 let currentLightboxList = [];
 
 function renderAll() {
-  publicPhotos = PHOTOS.filter(p => !p.private);
-  privatePhotos = PHOTOS.filter(p => p.private);
+  // Сортируем: сначала новые
+  publicPhotos  = sortByDate(PHOTOS.filter(p => !p.private));
+  privatePhotos = sortByDate(PHOTOS.filter(p => p.private));
 
   renderGrid('grid-all', publicPhotos);
-  renderGrid('grid-work', publicPhotos.filter(p => p.cat === 'work'));
-  renderGrid('grid-life', publicPhotos.filter(p => p.cat === 'life'));
-  renderGrid('grid-friends', publicPhotos.filter(p => p.cat === 'friends'));
+  renderGrid('grid-work', sortByDate(publicPhotos.filter(p => p.cat === 'work')));
+  renderGrid('grid-life', sortByDate(publicPhotos.filter(p => p.cat === 'life')));
+  renderGrid('grid-friends', sortByDate(publicPhotos.filter(p => p.cat === 'friends')));
   renderGrid('grid-private', privatePhotos);
 
   updateCount('count-all', publicPhotos.length);
@@ -291,12 +302,12 @@ function getCurrentList() {
   const activePage = $('.page.active');
   if (!activePage) return publicPhotos;
   if (activePage.id === 'page-private') return privatePhotos;
-  if (activePage.id === 'page-work')    return publicPhotos.filter(p => p.cat === 'work');
-  if (activePage.id === 'page-life')    return publicPhotos.filter(p => p.cat === 'life');
-  if (activePage.id === 'page-friends') return publicPhotos.filter(p => p.cat === 'friends');
+  if (activePage.id === 'page-work')    return sortByDate(publicPhotos.filter(p => p.cat === 'work'));
+  if (activePage.id === 'page-life')    return sortByDate(publicPhotos.filter(p => p.cat === 'life'));
+  if (activePage.id === 'page-friends') return sortByDate(publicPhotos.filter(p => p.cat === 'friends'));
   const activeFilter = $('.filter.active');
   if (activeFilter && activeFilter.dataset.filter !== 'all') {
-    return publicPhotos.filter(p => p.cat === activeFilter.dataset.filter);
+    return sortByDate(publicPhotos.filter(p => p.cat === activeFilter.dataset.filter));
   }
   return publicPhotos;
 }
@@ -308,7 +319,6 @@ function openLightbox(id) {
   showLightboxPhoto(currentLightboxList[currentLightboxIndex]);
   lightbox.classList.add('open');
   document.body.style.overflow = 'hidden';
-  // Предзагружаем соседние
   preloadNeighbors();
 }
 
@@ -385,7 +395,9 @@ $$('.filter').forEach(btn => {
     $$('.filter').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const cat = btn.dataset.filter;
-    const filtered = cat === 'all' ? publicPhotos : publicPhotos.filter(p => p.cat === cat);
+    const filtered = cat === 'all'
+      ? publicPhotos
+      : sortByDate(publicPhotos.filter(p => p.cat === cat));
     renderGrid('grid-all', filtered);
     updateCount('count-all', filtered.length);
   });

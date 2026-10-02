@@ -1,5 +1,11 @@
 // ============================================================
-// SVG-плейсхолдеры (если фото не загружено)
+// УТИЛИТЫ
+// ============================================================
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+// ============================================================
+// SVG-ПЛЕЙСХОЛДЕРЫ
 // ============================================================
 function makePlaceholder(seed, label) {
   let h = 0;
@@ -41,17 +47,18 @@ const root = document.documentElement;
 function applyTheme(theme) {
   if (theme === 'dark') root.setAttribute('data-theme', 'dark');
   else root.removeAttribute('data-theme');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#0a1424' : '#dceafa');
 }
 
 function initTheme() {
   const saved = localStorage.getItem(THEME_KEY);
   if (saved) return applyTheme(saved);
-  // Если не сохранено — следуем системе
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   applyTheme(prefersDark ? 'dark' : 'light');
 }
 
-document.getElementById('theme-toggle').addEventListener('click', () => {
+$('#theme-toggle').addEventListener('click', () => {
   const isDark = root.getAttribute('data-theme') === 'dark';
   const next = isDark ? 'light' : 'dark';
   applyTheme(next);
@@ -61,53 +68,65 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
 initTheme();
 
 // ============================================================
-// ДАННЫЕ ФОТО
+// ПРОГРЕСС-БАР
 // ============================================================
-const PASSWORD = '69853'; // ← поменяй на свой пароль
+const progressBar = $('#progress-bar');
+let progressTimer = null;
+
+function startProgress() {
+  progressBar.classList.add('active');
+  progressBar.style.width = '20%';
+  clearTimeout(progressTimer);
+  progressTimer = setTimeout(() => { progressBar.style.width = '70%'; }, 200);
+}
+function finishProgress() {
+  progressBar.style.width = '100%';
+  clearTimeout(progressTimer);
+  setTimeout(() => {
+    progressBar.classList.remove('active');
+    setTimeout(() => { progressBar.style.width = '0'; }, 300);
+  }, 400);
+}
+
+// ============================================================
+// КОНСТАНТЫ
+// ============================================================
+const PASSWORD = '69853';
 const SESSION_KEY = 'takun_private_unlocked';
-const NEW_DAYS = 14; // фото младше 14 дней получают бейдж «Новое»
+const NEW_DAYS = 14;
 
 let PHOTOS = [];
 
+// ============================================================
+// ЗАГРУЗКА ДАННЫХ
+// ============================================================
 async function loadPhotos() {
-  try {
-    const res = await fetch('photos.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error('photos.json не найден');
-    const data = await res.json();
-    PHOTOS = data.map(p => ({
-      ...p,
-      src: p.src || makePlaceholder(p.title + p.id, p.title),
-    }));
-  } catch (e) {
-    console.warn('Не удалось загрузить photos.json, использую встроенный список.');
-    PHOTOS = getFallbackPhotos();
-  }
+  const res = await fetch('photos.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error('photos.json не найден');
+  const data = await res.json();
+  PHOTOS = data.map(p => ({
+    ...p,
+    src: p.src || makePlaceholder(p.title + p.id, p.title),
+  }));
 }
 
-// Резервный список, если photos.json не загрузился
-function getFallbackPhotos() {
-  const base = [
-    { id: 1,  cat: 'life',    tag: 'Жизнь',       date: 'Сентябрь 2026', title: 'Прогулка по городу' },
-    { id: 2,  cat: 'work',    tag: 'Работа',      date: 'Август 2026',   title: 'Эскизы к проекту' },
-    { id: 3,  cat: 'life',    tag: 'Жизнь',       date: 'Июль 2026',     title: 'Плёночные кадры' },
-    { id: 4,  cat: 'travel',  tag: 'Путешествия', date: 'Июнь 2026',     title: 'Море' },
-    { id: 5,  cat: 'work',    tag: 'Работа',      date: 'Май 2026',      title: 'Работа над сайтом' },
-    { id: 6,  cat: 'friends', tag: 'Друзья',      date: 'Апрель 2026',   title: 'Встреча с друзьями' },
-    { id: 7,  cat: 'travel',  tag: 'Путешествия', date: 'Март 2026',     title: 'Горы' },
-    { id: 8,  cat: 'life',    tag: 'Жизнь',       date: 'Февраль 2026',  title: 'Утро' },
-    { id: 9,  cat: 'work',    tag: 'Работа',      date: 'Январь 2026',   title: 'Прототип' },
-    { id: 10, cat: 'friends', tag: 'Друзья',      date: 'Декабрь 2025',  title: 'Новый год' },
-    { id: 11, cat: 'travel',  tag: 'Путешествия', date: 'Ноябрь 2025',   title: 'Старый город' },
-    { id: 12, cat: 'life',    tag: 'Жизнь',       date: 'Октябрь 2025',  title: 'Осень' },
-    { id: 101, cat: 'private', tag: 'Личное', date: 'Сентябрь 2026', title: 'Семья',        private: true },
-    { id: 102, cat: 'private', tag: 'Личное', date: 'Август 2026',   title: 'Дома',         private: true },
-    { id: 103, cat: 'private', tag: 'Личное', date: 'Июль 2026',     title: 'Отпуск',       private: true },
-    { id: 104, cat: 'private', tag: 'Личное', date: 'Июнь 2026',     title: 'Близкие',      private: true },
-    { id: 105, cat: 'private', tag: 'Личное', date: 'Май 2026',      title: 'Тихий вечер',  private: true },
-    { id: 106, cat: 'private', tag: 'Личное', date: 'Апрель 2026',   title: 'Воспоминание', private: true },
-  ];
-  return base.map(p => ({ ...p, src: makePlaceholder(p.title + p.id, p.title) }));
-}
+// ============================================================
+// ЛЕНИВАЯ ЗАГРУЗКА ФОТО
+// ============================================================
+const lazyObserver = 'IntersectionObserver' in window
+  ? new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          if (img.dataset.src) {
+            img.src = img.dataset.src;
+            img.removeAttribute('data-src');
+          }
+          obs.unobserve(img);
+        }
+      });
+    }, { rootMargin: '200px' })
+  : null;
 
 // ============================================================
 // РЕНДЕР
@@ -120,11 +139,12 @@ function isNew(photo) {
 
 function renderCard(photo) {
   const newBadge = isNew(photo) ? '<span class="badge-new">Новое</span>' : '';
+  // Используем data-src для ленивой загрузки, чтобы не грузить всё сразу
   return `
     <button class="archive-item" data-id="${photo.id}">
       <span class="tag">${photo.tag}</span>
       ${newBadge}
-      <img src="${photo.src}" alt="${photo.title}" loading="lazy">
+      <img data-src="${photo.src}" alt="${photo.title}" loading="lazy" decoding="async">
       <div class="meta">
         <div class="date">${photo.date}</div>
         <div class="title">${photo.title}</div>
@@ -137,6 +157,17 @@ function renderGrid(containerId, photos) {
   const el = document.getElementById(containerId);
   if (!el) return;
   el.innerHTML = photos.map(renderCard).join('');
+
+  // Подключаем ленивую загрузку
+  if (lazyObserver) {
+    el.querySelectorAll('img[data-src]').forEach(img => lazyObserver.observe(img));
+  } else {
+    // Фолбэк: загружаем всё сразу
+    el.querySelectorAll('img[data-src]').forEach(img => {
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+    });
+  }
 }
 
 function updateCount(id, n) {
@@ -145,7 +176,7 @@ function updateCount(id, n) {
 }
 
 // ============================================================
-// ИНИЦИАЛИЗАЦИЯ
+// ИНИЦИАЛИЗАЦИЯ КОНТЕНТА
 // ============================================================
 let publicPhotos = [];
 let privatePhotos = [];
@@ -177,11 +208,11 @@ const pages = ['all', 'work', 'life', 'friends', 'about', 'private'];
 function showPage(name) {
   if (!pages.includes(name)) name = 'all';
 
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  $$('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + name);
   if (target) target.classList.add('active');
 
-  document.querySelectorAll('#nav a').forEach(a => {
+  $$('#nav a').forEach(a => {
     a.classList.toggle('active', a.dataset.page === name);
   });
 
@@ -190,7 +221,9 @@ function showPage(name) {
 }
 
 function handleHash() {
+  startProgress();
   showPage(location.hash.replace('#', '') || 'all');
+  setTimeout(finishProgress, 200);
 }
 
 window.addEventListener('hashchange', handleHash);
@@ -198,12 +231,12 @@ window.addEventListener('hashchange', handleHash);
 // ============================================================
 // ПРИВАТНЫЙ ДОСТУП
 // ============================================================
-const lockScreen = document.getElementById('lock-screen');
-const privateContent = document.getElementById('private-content');
-const passwordInput = document.getElementById('password-input');
-const passwordHint = document.getElementById('password-hint');
-const unlockBtn = document.getElementById('unlock-btn');
-const lockAgainBtn = document.getElementById('lock-again-btn');
+const lockScreen = $('#lock-screen');
+const privateContent = $('#private-content');
+const passwordInput = $('#password-input');
+const passwordHint = $('#password-hint');
+const unlockBtn = $('#unlock-btn');
+const lockAgainBtn = $('#lock-again-btn');
 
 function checkPrivateSession() {
   const unlocked = sessionStorage.getItem(SESSION_KEY) === 'true';
@@ -245,25 +278,23 @@ lockAgainBtn.addEventListener('click', () => {
 // ============================================================
 // ЛАЙТБОКС
 // ============================================================
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = document.getElementById('lightbox-img');
-const lightboxDate = document.getElementById('lightbox-date');
-const lightboxTitle = document.getElementById('lightbox-title');
-const lightboxClose = document.getElementById('lightbox-close');
-const lightboxPrev = document.getElementById('lightbox-prev');
-const lightboxNext = document.getElementById('lightbox-next');
-const lightboxDownload = document.getElementById('lightbox-download');
+const lightbox = $('#lightbox');
+const lightboxImg = $('#lightbox-img');
+const lightboxDate = $('#lightbox-date');
+const lightboxTitle = $('#lightbox-title');
+const lightboxClose = $('#lightbox-close');
+const lightboxPrev = $('#lightbox-prev');
+const lightboxNext = $('#lightbox-next');
+const lightboxDownload = $('#lightbox-download');
 
 function getCurrentList() {
-  // Определяем, из какой сетки открыт лайтбокс
-  const activePage = document.querySelector('.page.active');
+  const activePage = $('.page.active');
   if (!activePage) return publicPhotos;
   if (activePage.id === 'page-private') return privatePhotos;
   if (activePage.id === 'page-work')    return publicPhotos.filter(p => p.cat === 'work');
   if (activePage.id === 'page-life')    return publicPhotos.filter(p => p.cat === 'life');
   if (activePage.id === 'page-friends') return publicPhotos.filter(p => p.cat === 'friends');
-  // На "all" — учитываем активный фильтр
-  const activeFilter = document.querySelector('.filter.active');
+  const activeFilter = $('.filter.active');
   if (activeFilter && activeFilter.dataset.filter !== 'all') {
     return publicPhotos.filter(p => p.cat === activeFilter.dataset.filter);
   }
@@ -277,6 +308,21 @@ function openLightbox(id) {
   showLightboxPhoto(currentLightboxList[currentLightboxIndex]);
   lightbox.classList.add('open');
   document.body.style.overflow = 'hidden';
+  // Предзагружаем соседние
+  preloadNeighbors();
+}
+
+function preloadNeighbors() {
+  const len = currentLightboxList.length;
+  if (len < 2) return;
+  [1, -1].forEach(offset => {
+    const idx = (currentLightboxIndex + offset + len) % len;
+    const photo = currentLightboxList[idx];
+    if (photo && photo.src && !photo.src.startsWith('data:')) {
+      const img = new Image();
+      img.src = photo.src;
+    }
+  });
 }
 
 function showLightboxPhoto(photo) {
@@ -298,18 +344,20 @@ function nextPhoto() {
   if (!currentLightboxList.length) return;
   currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxList.length;
   showLightboxPhoto(currentLightboxList[currentLightboxIndex]);
+  preloadNeighbors();
 }
 
 function prevPhoto() {
   if (!currentLightboxList.length) return;
   currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxList.length) % currentLightboxList.length;
   showLightboxPhoto(currentLightboxList[currentLightboxIndex]);
+  preloadNeighbors();
 }
 
 function closeLightbox() {
   lightbox.classList.remove('open');
   document.body.style.overflow = '';
-  setTimeout(() => { lightboxImg.src = ''; }, 250);
+  setTimeout(() => { lightboxImg.src = ''; }, 300);
 }
 
 document.addEventListener('click', e => {
@@ -332,9 +380,9 @@ document.addEventListener('keydown', e => {
 // ============================================================
 // ФИЛЬТРЫ
 // ============================================================
-document.querySelectorAll('.filter').forEach(btn => {
+$$('.filter').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
+    $$('.filter').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const cat = btn.dataset.filter;
     const filtered = cat === 'all' ? publicPhotos : publicPhotos.filter(p => p.cat === cat);
@@ -352,7 +400,16 @@ document.getElementById('year').textContent = new Date().getFullYear();
 // СТАРТ
 // ============================================================
 (async function init() {
-  await loadPhotos();
-  renderAll();
-  handleHash();
+  startProgress();
+  try {
+    await loadPhotos();
+    renderAll();
+    handleHash();
+  } catch (err) {
+    console.error(err);
+    document.querySelector('main').innerHTML =
+      '<p style="text-align:center;padding:60px;color:#4a637d">Ошибка загрузки архива</p>';
+  } finally {
+    finishProgress();
+  }
 })();

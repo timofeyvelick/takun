@@ -39,10 +39,8 @@ function makePlaceholder(seed, label) {
 }
 
 // ============================================================
-// СОРТИРОВКА ПО ДАТЕ (от новых к старым)
+// СОРТИРОВКА
 // ============================================================
-// Используем поле "added" (формат YYYY-MM-DD).
-// Если его нет — фото уходит в конец.
 function sortByDate(photos) {
   return [...photos].sort((a, b) => {
     const dateA = a.added ? new Date(a.added).getTime() : 0;
@@ -104,10 +102,7 @@ function finishProgress() {
 // ============================================================
 // КОНСТАНТЫ
 // ============================================================
-const PASSWORD = '69853';
-const SESSION_KEY = 'takun_private_unlocked';
 const NEW_DAYS = 14;
-
 let PHOTOS = [];
 
 // ============================================================
@@ -124,7 +119,7 @@ async function loadPhotos() {
 }
 
 // ============================================================
-// ЛЕНИВАЯ ЗАГРУЗКА ФОТО
+// ЛЕНИВАЯ ЗАГРУЗКА
 // ============================================================
 const lazyObserver = 'IntersectionObserver' in window
   ? new IntersectionObserver((entries, obs) => {
@@ -169,7 +164,6 @@ function renderGrid(containerId, photos) {
   const el = document.getElementById(containerId);
   if (!el) return;
   el.innerHTML = photos.map(renderCard).join('');
-
   if (lazyObserver) {
     el.querySelectorAll('img[data-src]').forEach(img => lazyObserver.observe(img));
   } else {
@@ -186,35 +180,31 @@ function updateCount(id, n) {
 }
 
 // ============================================================
-// ИНИЦИАЛИЗАЦИЯ КОНТЕНТА
+// КОНТЕНТ
 // ============================================================
 let publicPhotos = [];
-let privatePhotos = [];
 let currentLightboxIndex = -1;
 let currentLightboxList = [];
 
 function renderAll() {
-  // Сортируем: сначала новые
-  publicPhotos  = sortByDate(PHOTOS.filter(p => !p.private));
-  privatePhotos = sortByDate(PHOTOS.filter(p => p.private));
+  // Только публичные (приватные — отдельная страница)
+  publicPhotos = sortByDate(PHOTOS.filter(p => !p.private));
 
   renderGrid('grid-all', publicPhotos);
   renderGrid('grid-work', sortByDate(publicPhotos.filter(p => p.cat === 'work')));
   renderGrid('grid-life', sortByDate(publicPhotos.filter(p => p.cat === 'life')));
   renderGrid('grid-friends', sortByDate(publicPhotos.filter(p => p.cat === 'friends')));
-  renderGrid('grid-private', privatePhotos);
 
   updateCount('count-all', publicPhotos.length);
   updateCount('count-work', publicPhotos.filter(p => p.cat === 'work').length);
   updateCount('count-life', publicPhotos.filter(p => p.cat === 'life').length);
   updateCount('count-friends', publicPhotos.filter(p => p.cat === 'friends').length);
-  updateCount('count-private', privatePhotos.length);
 }
 
 // ============================================================
 // РОУТИНГ
 // ============================================================
-const pages = ['all', 'work', 'life', 'friends', 'about', 'private'];
+const pages = ['all', 'work', 'life', 'friends', 'about'];
 
 function showPage(name) {
   if (!pages.includes(name)) name = 'all';
@@ -224,10 +214,11 @@ function showPage(name) {
   if (target) target.classList.add('active');
 
   $$('#nav a').forEach(a => {
-    a.classList.toggle('active', a.dataset.page === name);
+    if (a.dataset.page) {
+      a.classList.toggle('active', a.dataset.page === name);
+    }
   });
 
-  if (name === 'private') checkPrivateSession();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -238,53 +229,6 @@ function handleHash() {
 }
 
 window.addEventListener('hashchange', handleHash);
-
-// ============================================================
-// ПРИВАТНЫЙ ДОСТУП
-// ============================================================
-const lockScreen = $('#lock-screen');
-const privateContent = $('#private-content');
-const passwordInput = $('#password-input');
-const passwordHint = $('#password-hint');
-const unlockBtn = $('#unlock-btn');
-const lockAgainBtn = $('#lock-again-btn');
-
-function checkPrivateSession() {
-  const unlocked = sessionStorage.getItem(SESSION_KEY) === 'true';
-  if (unlocked) {
-    lockScreen.style.display = 'none';
-    privateContent.style.display = 'block';
-  } else {
-    lockScreen.style.display = 'block';
-    privateContent.style.display = 'none';
-    passwordInput.value = '';
-    passwordHint.classList.remove('show');
-  }
-}
-
-function tryUnlock() {
-  if (passwordInput.value.trim() === PASSWORD) {
-    sessionStorage.setItem(SESSION_KEY, 'true');
-    lockScreen.style.display = 'none';
-    privateContent.style.display = 'block';
-    passwordHint.classList.remove('show');
-    passwordInput.classList.remove('error');
-  } else {
-    passwordInput.classList.add('error');
-    passwordHint.classList.add('show');
-    setTimeout(() => passwordInput.classList.remove('error'), 400);
-  }
-}
-
-unlockBtn.addEventListener('click', tryUnlock);
-passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
-passwordInput.addEventListener('input', () => passwordHint.classList.remove('show'));
-
-lockAgainBtn.addEventListener('click', () => {
-  sessionStorage.removeItem(SESSION_KEY);
-  checkPrivateSession();
-  passwordInput.focus();
-});
 
 // ============================================================
 // ЛАЙТБОКС
@@ -301,7 +245,6 @@ const lightboxDownload = $('#lightbox-download');
 function getCurrentList() {
   const activePage = $('.page.active');
   if (!activePage) return publicPhotos;
-  if (activePage.id === 'page-private') return privatePhotos;
   if (activePage.id === 'page-work')    return sortByDate(publicPhotos.filter(p => p.cat === 'work'));
   if (activePage.id === 'page-life')    return sortByDate(publicPhotos.filter(p => p.cat === 'life'));
   if (activePage.id === 'page-friends') return sortByDate(publicPhotos.filter(p => p.cat === 'friends'));
@@ -404,7 +347,7 @@ $$('.filter').forEach(btn => {
 });
 
 // ============================================================
-// ГОД В ФУТЕРЕ
+// ГОД
 // ============================================================
 document.getElementById('year').textContent = new Date().getFullYear();
 

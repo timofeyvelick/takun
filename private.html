@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#dceafa">
+<title>Приватное — takun.space</title>
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%23247ad6'/><text x='50' y='68' font-family='sans-serif' font-size='58' font-weight='700' fill='white' text-anchor='middle'>t</text></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=Unbounded:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="/" class="logo">takun.space</a>
+
+    <nav>
+      <a href="/">← На главную</a>
+    </nav>
+
+    <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4.2"></circle>
+        <line x1="12" y1="2.5" x2="12" y2="5.5"></line>
+        <line x1="12" y1="18.5" x2="12" y2="21.5"></line>
+        <line x1="2.5" y1="12" x2="5.5" y2="12"></line>
+        <line x1="18.5" y1="12" x2="21.5" y2="12"></line>
+        <line x1="5.3" y1="5.3" x2="7.4" y2="7.4"></line>
+        <line x1="16.6" y1="16.6" x2="18.7" y2="18.7"></line>
+        <line x1="5.3" y1="18.7" x2="7.4" y2="16.6"></line>
+        <line x1="16.6" y1="7.4" x2="18.7" y2="5.3"></line>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a6.8 6.8 0 0 0 11 11Z"></path>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="page active">
+    <div class="hero glass">
+      <h1>Приватное</h1>
+      <p>Только для друзей и семьи.</p>
+    </div>
+
+    <div class="section-title">
+      <h2>Личное</h2>
+      <span class="count" id="count-private">0</span>
+    </div>
+
+    <div class="archive-grid" id="grid-private"></div>
+  </section>
+</main>
+
+<footer>takun.space · <span id="year"></span></footer>
+
+<!-- ЛАЙТБОКС -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close" aria-label="Закрыть">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Предыдущее">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  </button>
+
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Следующее">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </button>
+
+  <div class="lightbox-inner">
+    <img class="lightbox-image" id="lightbox-img" src="" alt="">
+    <div class="lightbox-caption">
+      <div class="info">
+        <div class="date" id="lightbox-date"></div>
+        <div class="title" id="lightbox-title"></div>
+      </div>
+      <a class="lightbox-download" id="lightbox-download" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Скачать</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="private.js"></script>
+</body>
+</html>

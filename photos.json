@@ -106,15 +106,5 @@
     "title": "Осень",
     "src": "photos/5328304189853081582.jpg",
     "added": "2025-10-03"
-  },
-  {
-    "id": 101,
-    "cat": "private",
-    "tag": "Личное",
-    "date": "Октябрь 2026",
-    "title": "обои",
-    "src": "private/44.jpg",
-    "added": "2026-10-02",
-    "private": true
   }
 ]

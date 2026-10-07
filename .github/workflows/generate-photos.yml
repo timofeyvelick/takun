@@ -1,0 +1,46 @@
+name: Generate photos.json
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'photos/**'
+      - '!photos.json'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Generate photos.json
+        run: python scripts/generate_photos.py
+
+      - name: Check for changes
+        id: verify
+        run: |
+          if git diff --quiet photos.json; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push
+        if: steps.verify.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add photos.json
+          git commit -m "Auto-update photos.json [skip ci]"
+          git push

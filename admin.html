@@ -6,163 +6,56 @@
 <title>Админка — takun.space</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg: #dceafa;
-    --card: #ffffff;
-    --text: #0a1b2e;
-    --text-muted: #5a6a7e;
-    --accent: #247ad6;
-    --accent-hover: #1e6ac0;
-    --border: #c9d6e5;
-    --success-bg: #e6f7ed;
-    --success-text: #1a7a3a;
-    --error-bg: #fde8e8;
-    --error-text: #b91c1c;
-    --info-bg: #e8f0fa;
-    --info-text: #247ad6;
+    --bg: #dceafa; --card: #ffffff; --text: #0a1b2e; --text-muted: #5a6a7e;
+    --accent: #247ad6; --accent-hover: #1e6ac0; --border: #c9d6e5;
+    --success-bg: #e6f7ed; --success-text: #1a7a3a;
+    --error-bg: #fde8e8; --error-text: #b91c1c;
+    --info-bg: #e8f0fa; --info-text: #247ad6;
   }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
   }
-
   .card {
-    background: var(--card);
-    border-radius: 24px;
-    padding: 48px;
-    max-width: 560px;
-    width: 100%;
-    box-shadow: 0 4px 24px rgba(10, 27, 46, 0.08);
+    background: var(--card); border-radius: 24px; padding: 48px;
+    max-width: 560px; width: 100%; box-shadow: 0 4px 24px rgba(10, 27, 46, 0.08);
   }
-
-  h1 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 8px;
+  h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+  .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+  .field { margin-bottom: 20px; }
+  label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  input[type="text"], input[type="password"], input[type="number"], select {
+    width: 100%; padding: 12px 16px; border: 1px solid var(--border);
+    border-radius: 12px; font-size: 15px; font-family: inherit;
+    background: #fff; color: var(--text); transition: border-color 0.2s;
   }
-
-  .subtitle {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin-bottom: 32px;
-  }
-
-  .field {
-    margin-bottom: 20px;
-  }
-
-  label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  input[type="text"],
-  input[type="password"],
-  select {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    font-size: 15px;
-    font-family: inherit;
-    background: #fff;
-    color: var(--text);
-    transition: border-color 0.2s;
-  }
-
-  input[type="text"]:focus,
-  input[type="password"]:focus,
-  select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-
-  input:disabled,
-  select:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .file-input {
-    padding: 32px 24px;
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: block;
+    padding: 32px 24px; border: 2px dashed var(--border); border-radius: 12px;
+    text-align: center; cursor: pointer; transition: all 0.2s; display: block;
   }
-
-  .file-input:hover {
-    border-color: var(--accent);
-    background: #f5faff;
-  }
-
-  .file-input input[type="file"] {
-    display: none;
-  }
-
-  .file-input .selected {
-    color: var(--accent);
-    font-weight: 500;
-  }
-
-  .file-input .hint {
-    color: var(--text-muted);
-    font-size: 13px;
-    margin-top: 8px;
-  }
-
+  .file-input:hover { border-color: var(--accent); background: #f5faff; }
+  .file-input input[type="file"] { display: none; }
+  .file-input .selected { color: var(--accent); font-weight: 500; }
+  .file-input .hint { color: var(--text-muted); font-size: 13px; margin-top: 8px; }
   button {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 100px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: all 0.2s;
+    width: 100%; padding: 14px; background: var(--accent); color: #fff;
+    border: none; border-radius: 100px; font-size: 16px; font-weight: 500;
+    cursor: pointer; margin-top: 8px; transition: all 0.2s;
   }
-
-  button:hover:not(:disabled) {
-    background: var(--accent-hover);
-  }
-
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
+  button:hover:not(:disabled) { background: var(--accent-hover); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
   .status {
-    margin-top: 16px;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    line-height: 1.5;
-    display: none;
+    margin-top: 16px; padding: 12px 16px; border-radius: 12px;
+    font-size: 14px; line-height: 1.5; display: none;
   }
-
   .status.success { display: block; background: var(--success-bg); color: var(--success-text); }
   .status.error   { display: block; background: var(--error-bg);   color: var(--error-text); }
   .status.info    { display: block; background: var(--info-bg);    color: var(--info-text); }
-
-  @media (max-width: 640px) {
-    .card { padding: 32px 24px; }
-    h1 { font-size: 20px; }
-  }
+  @media (max-width: 640px) { .card { padding: 32px 24px; } h1 { font-size: 20px; } .row { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -174,7 +67,7 @@
     <div class="field">
       <label for="photo">Фото</label>
       <label class="file-input" for="photo">
-        <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp" required>
+        <input type="file" id="photo" accept="image/jpeg,image/png,image/webp" required>
         <span id="fileName">Нажмите, чтобы выбрать файл</span>
         <div class="hint">JPG, PNG, WebP — до 10 МБ</div>
       </label>
@@ -182,27 +75,34 @@
 
     <div class="field">
       <label for="title">Название</label>
-      <input type="text" id="title" name="title" placeholder="Например: Закат на море" required>
+      <input type="text" id="title" placeholder="Например: Закат на море" required>
     </div>
 
     <div class="field">
-      <label for="cat">Категория</label>
-      <select id="cat" name="cat">
-        <option value="life">Жизнь</option>
-        <option value="work">Работа</option>
-        <option value="friends">Друзья</option>
-        <option value="travel">Путешествия</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="date">Дата (текстом)</label>
-      <input type="text" id="date" name="date" placeholder="Например: Май 2025" required>
+      <label>Дата съёмки</label>
+      <div class="row">
+        <select id="month" required>
+          <option value="">— Месяц —</option>
+          <option value="Январь">Январь</option>
+          <option value="Февраль">Февраль</option>
+          <option value="Март">Март</option>
+          <option value="Апрель">Апрель</option>
+          <option value="Май">Май</option>
+          <option value="Июнь">Июнь</option>
+          <option value="Июль">Июль</option>
+          <option value="Август">Август</option>
+          <option value="Сентябрь">Сентябрь</option>
+          <option value="Октябрь">Октябрь</option>
+          <option value="Ноябрь">Ноябрь</option>
+          <option value="Декабрь">Декабрь</option>
+        </select>
+        <input type="number" id="year" min="2000" max="2100" placeholder="2026" required>
+      </div>
     </div>
 
     <div class="field">
       <label for="target">Куда загрузить</label>
-      <select id="target" name="target">
+      <select id="target">
         <option value="public">Публичный архив</option>
         <option value="private">Приватный раздел</option>
       </select>
@@ -210,7 +110,7 @@
 
     <div class="field">
       <label for="password">Пароль администратора</label>
-      <input type="password" id="password" name="password" placeholder="Введите пароль" autocomplete="current-password" required>
+      <input type="password" id="password" placeholder="Введите пароль" autocomplete="current-password" required>
     </div>
 
     <button type="submit" id="submitBtn">Загрузить</button>
@@ -225,9 +125,8 @@
   const submitBtn = document.getElementById('submitBtn');
   const status = document.getElementById('status');
 
-  const MAX_SIZE = 10 * 1024 * 1024; // 10 МБ
+  const MAX_SIZE = 10 * 1024 * 1024;
 
-  // Показ имени выбранного файла
   fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 0) {
       const f = fileInput.files[0];
@@ -239,53 +138,40 @@
     }
   });
 
-  // Показ статуса
   function showStatus(type, text) {
     status.className = 'status ' + type;
     status.textContent = text;
   }
+  function clearStatus() { status.className = 'status'; status.textContent = ''; }
 
-  function clearStatus() {
-    status.className = 'status';
-    status.textContent = '';
-  }
-
-  // Отправка формы
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearStatus();
 
-    // Валидация
     if (!fileInput.files || fileInput.files.length === 0) {
-      showStatus('error', 'Выберите файл');
-      return;
+      showStatus('error', 'Выберите файл'); return;
     }
     const file = fileInput.files[0];
-
     if (file.size > MAX_SIZE) {
-      showStatus('error', 'Файл больше 10 МБ. Сожмите его и попробуйте снова.');
-      return;
+      showStatus('error', 'Файл больше 10 МБ.'); return;
     }
 
     const title = document.getElementById('title').value.trim();
-    if (!title) {
-      showStatus('error', 'Введите название');
-      return;
-    }
+    if (!title) { showStatus('error', 'Введите название'); return; }
 
-    const date = document.getElementById('date').value.trim();
-    if (!date) {
-      showStatus('error', 'Введите дату (например: Май 2025)');
-      return;
+    const month = document.getElementById('month').value;
+    if (!month) { showStatus('error', 'Выберите месяц'); return; }
+
+    const year = document.getElementById('year').value.trim();
+    if (!year || year.length !== 4) {
+      showStatus('error', 'Введите год (4 цифры)'); return;
     }
 
     const password = document.getElementById('password').value;
-    if (!password) {
-      showStatus('error', 'Введите пароль администратора');
-      return;
-    }
+    if (!password) { showStatus('error', 'Введите пароль'); return; }
 
-    // Блокируем форму
+    const date = `${month} ${year}`;
+
     submitBtn.disabled = true;
     submitBtn.textContent = 'Загрузка...';
     showStatus('info', 'Отправка файла на сервер...');
@@ -294,36 +180,27 @@
       const formData = new FormData();
       formData.append('photo', file);
       formData.append('title', title);
-      formData.append('cat', document.getElementById('cat').value);
+      formData.append('cat', 'life');
       formData.append('date', date);
       formData.append('target', document.getElementById('target').value);
       formData.append('password', password);
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
 
       let data;
-      try {
-        data = await res.json();
-      } catch {
-        data = { error: 'Сервер вернул неожиданный ответ (HTTP ' + res.status + ')' };
-      }
+      try { data = await res.json(); }
+      catch { data = { error: 'HTTP ' + res.status }; }
 
       if (res.ok && data.ok) {
-        showStatus(
-          'success',
+        showStatus('success',
           'Фото загружено: ' + data.filename +
           '. Автор: ' + (data.uploaded_by || 'admin') +
-          '. Через минуту оно появится в архиве.'
-        );
-        // Сбрасываем форму
+          '. Через минуту оно появится в архиве.');
         form.reset();
         fileName.textContent = 'Нажмите, чтобы выбрать файл';
         fileName.classList.remove('selected');
       } else {
-        showStatus('error', data.error || 'Ошибка загрузки (HTTP ' + res.status + ')');
+        showStatus('error', data.error || 'Ошибка (HTTP ' + res.status + ')');
       }
     } catch (err) {
       showStatus('error', 'Сетевая ошибка: ' + err.message);

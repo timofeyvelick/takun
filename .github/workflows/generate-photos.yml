@@ -43,4 +43,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add photos.json
           git commit -m "Auto-update photos.json [skip ci]"
+          git pull --rebase origin main
           git push

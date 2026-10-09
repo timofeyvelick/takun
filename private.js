@@ -1,7 +1,6 @@
 // ============================================================
 // Приватный раздел — отдельная страница
-// Защита через Cloudflare Access (на уровне сервера)
-// Пароля в коде нет — Cloudflare пускает только одобренных
+// Фото и photos.json читаются из takun-private через воркер
 // ============================================================
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -86,29 +85,46 @@ const lazyObserver = 'IntersectionObserver' in window
   : null;
 
 // ---------- Данные ----------
-let PHOTOS = [];
 let privatePhotos = [];
 
 async function loadPhotos() {
-  const res = await fetch('photos.json', { cache: 'no-store' });
-  if (!res.ok) throw new Error('photos.json не найден');
-  const data = await res.json();
-  PHOTOS = data.map(p => ({
+  // ⚠️ Загружаем ИМЕННО из приватного источника через воркер
+  const res = await fetch('/private/photos.json', { cache: 'no-store' });
+
+  if (!res.ok) {
+    if (res.status === 404) {
+      // Приватный JSON ещё не создан — показываем пустую галерею
+      privatePhotos = [];
+      return;
+    }
+    throw new Error('Ошибка загрузки /private/photos.json: HTTP ' + res.status);
+  }
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error('Приватный photos.json повреждён');
+  }
+
+  // Поддерживаем и плоский массив, и обёртку { photos: [...] }
+  const list = Array.isArray(data) ? data : (data.photos || []);
+
+  privatePhotos = sortByDate(list.map(p => ({
     ...p,
-    src: p.src || makePlaceholder(p.title + p.id, p.title),
-  }));
-  privatePhotos = sortByDate(PHOTOS.filter(p => p.private));
+    src: p.src || makePlaceholder(p.title + p.id, p.title || String(p.id)),
+  })));
 }
 
 // ---------- Рендер ----------
 function renderCard(photo) {
   return `
     <button class="archive-item" data-id="${photo.id}">
-      <span class="tag">${photo.tag}</span>
-      <img data-src="${photo.src}" alt="${photo.title}" loading="lazy" decoding="async">
+      <span class="tag">${photo.tag || ''}</span>
+      <img data-src="${photo.src}" alt="${photo.title || ''}" loading="lazy" decoding="async">
       <div class="meta">
-        <div class="date">${photo.date}</div>
-        <div class="title">${photo.title}</div>
+        <div class="date">${photo.date || ''}</div>
+        <div class="title">${photo.title || ''}</div>
       </div>
     </button>
   `;
@@ -164,15 +180,15 @@ function preloadNeighbors() {
 
 function showLightboxPhoto(photo) {
   lightboxImg.src = photo.src;
-  lightboxImg.alt = photo.title;
-  lightboxDate.textContent = photo.date;
-  lightboxTitle.textContent = photo.title;
+  lightboxImg.alt = photo.title || '';
+  lightboxDate.textContent = photo.date || '';
+  lightboxTitle.textContent = photo.title || '';
   if (photo.src.startsWith('data:')) {
     lightboxDownload.removeAttribute('href');
     lightboxDownload.style.display = 'none';
   } else {
     lightboxDownload.href = photo.src;
-    lightboxDownload.setAttribute('download', photo.title + '.jpg');
+    lightboxDownload.setAttribute('download', (photo.title || 'photo') + '.jpg');
     lightboxDownload.style.display = 'inline-flex';
   }
 }
@@ -215,14 +231,16 @@ document.addEventListener('keydown', e => {
 });
 
 // ---------- Год ----------
-document.getElementById('year').textContent = new Date().getFullYear();
+const yearEl = document.getElementById('year');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 // ---------- Старт ----------
 (async function init() {
   try {
     await loadPhotos();
     renderGrid('grid-private', privatePhotos);
-    document.getElementById('count-private').textContent = privatePhotos.length + ' записей';
+    const countEl = document.getElementById('count-private');
+    if (countEl) countEl.textContent = privatePhotos.length + ' записей';
   } catch (err) {
     console.error(err);
     document.querySelector('main').innerHTML =

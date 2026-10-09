@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админка — takun.space</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #dceafa;
+    color: #0a1b2e;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 48px;
+    max-width: 560px;
+    width: 100%;
+    box-shadow: 0 4px 24px rgba(10, 27, 46, 0.08);
+  }
+  h1 { font-size: 24px; margin-bottom: 8px; }
+  .subtitle { color: #5a6a7e; font-size: 14px; margin-bottom: 32px; }
+  .field { margin-bottom: 20px; }
+  label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+  input, select, textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #c9d6e5;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #fff;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #247ad6;
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .file-input {
+    padding: 32px 24px;
+    border: 2px dashed #c9d6e5;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+  }
+  .file-input:hover { border-color: #247ad6; background: #f5faff; }
+  .file-input input { display: none; }
+  .file-input .selected { color: #247ad6; font-weight: 500; }
+  .file-input .hint { color: #5a6a7e; font-size: 13px; margin-top: 8px; }
+  button {
+    width: 100%;
+    padding: 14px;
+    background: #247ad6;
+    color: #fff;
+    border: none;
+    border-radius: 100px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+  button:hover:not(:disabled) { filter: brightness(1.1); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    display: none;
+    line-height: 1.5;
+  }
+  .status.success { display: block; background: #e6f7ed; color: #1a7a3a; }
+  .status.error { display: block; background: #fde8e8; color: #b91c1c; }
+  .status.info { display: block; background: #e8f0fa; color: #247ad6; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Загрузка фото</h1>
+  <p class="subtitle">Для takun.space</p>
+
+  <form id="uploadForm">
+    <div class="field">
+      <label>Фото</label>
+      <label class="file-input" for="photo">
+        <input type="file" id="photo" accept="image/*" required>
+        <span id="fileName">Нажмите, чтобы выбрать файл</span>
+        <div class="hint">JPG, PNG, WebP — до 10 МБ</div>
+      </label>
+    </div>
+
+    <div class="field">
+      <label>Название</label>
+      <input type="text" id="title" placeholder="Например: Закат на море" required>
+    </div>
+
+    <div class="field">
+      <label>Категория</label>
+      <select id="cat">
+        <option value="life">Жизнь</option>
+        <option value="work">Работа</option>
+        <option value="friends">Друзья</option>
+        <option value="travel">Путешествия</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Дата (текстом)</label>
+      <input type="text" id="date" placeholder="Например: Май 2025" required>
+    </div>
+
+    <div class="field">
+      <label>Куда загрузить</label>
+      <select id="target">
+        <option value="public">Публичный архив</option>
+        <option value="private">Приватный раздел</option>
+      </select>
+    </div>
+
+    <button type="submit" id="submitBtn">Загрузить</button>
+    <div class="status" id="status"></div>
+  </form>
+</div>
+
+<script>
+  const fileInput = document.getElementById('photo');
+  const fileName = document.getElementById('fileName');
+  const form = document.getElementById('uploadForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const status = document.getElementById('status');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+      fileName.textContent = fileInput.files[0].name;
+      fileName.classList.add('selected');
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    status.className = 'status info';
+    status.textContent = 'Загрузка...';
+
+    try {
+      const formData = new FormData();
+      formData.append('photo', fileInput.files[0]);
+      formData.append('title', document.getElementById('title').value);
+      formData.append('cat', document.getElementById('cat').value);
+      formData.append('date', document.getElementById('date').value);
+      formData.append('target', document.getElementById('target').value);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        status.className = 'status success';
+        status.textContent = 'Фото загружено. Обновите страницу архива через минуту.';
+        form.reset();
+        fileName.textContent = 'Нажмите, чтобы выбрать файл';
+        fileName.classList.remove('selected');
+      } else {
+        status.className = 'status error';
+        status.textContent = data.error || 'Ошибка загрузки';
+      }
+    } catch (err) {
+      status.className = 'status error';
+      status.textContent = 'Сетевая ошибка: ' + err.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

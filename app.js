@@ -4,8 +4,13 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
+const MONTHS_RU = [
+  'Январь','Февраль','Март','Апрель','Май','Июнь',
+  'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
+];
+
 // ============================================================
-// SVG-ПЛЕЙСХОЛДЕРЫ
+// ПЛЕЙСХОЛДЕР
 // ============================================================
 function makePlaceholder(seed, label) {
   let h = 0;
@@ -18,20 +23,14 @@ function makePlaceholder(seed, label) {
   const c1 = `hsl(${hue1}, 75%, ${l1}%)`;
   const c2 = `hsl(${hue2}, 70%, ${l2}%)`;
   const angle = abs % 360;
-
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
     <defs>
       <linearGradient id="g" gradientTransform="rotate(${angle} 0.5 0.5)">
         <stop offset="0%" stop-color="${c1}"/>
         <stop offset="100%" stop-color="${c2}"/>
       </linearGradient>
-      <radialGradient id="r" cx="30%" cy="25%" r="70%">
-        <stop offset="0%" stop-color="rgba(255,255,255,0.45)"/>
-        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-      </radialGradient>
     </defs>
     <rect width="800" height="600" fill="url(#g)"/>
-    <rect width="800" height="600" fill="url(#r)"/>
     <text x="400" y="310" font-family="Manrope, sans-serif" font-size="42" font-weight="600"
           fill="rgba(255,255,255,0.85)" text-anchor="middle">${label}</text>
   </svg>`;
@@ -39,14 +38,16 @@ function makePlaceholder(seed, label) {
 }
 
 // ============================================================
-// СОРТИРОВКА
+// ПАРСИНГ ДАТЫ
 // ============================================================
-function sortByDate(photos) {
-  return [...photos].sort((a, b) => {
-    const dateA = a.added ? new Date(a.added).getTime() : 0;
-    const dateB = b.added ? new Date(b.added).getTime() : 0;
-    return dateB - dateA;
-  });
+function parseDate(str) {
+  if (!str || typeof str !== 'string') return null;
+  const parts = str.trim().split(/\s+/);
+  if (parts.length !== 2) return null;
+  const monthIdx = MONTHS_RU.indexOf(parts[0]);
+  const year = parseInt(parts[1], 10);
+  if (monthIdx < 0 || isNaN(year)) return null;
+  return { year, month: monthIdx + 1 };
 }
 
 // ============================================================
@@ -100,22 +101,64 @@ function finishProgress() {
 }
 
 // ============================================================
-// КОНСТАНТЫ
+// ДАННЫЕ
 // ============================================================
 const NEW_DAYS = 14;
 let PHOTOS = [];
+let publicPhotos = [];
+let currentYear = null;
+let currentMonth = null;
 
-// ============================================================
-// ЗАГРУЗКА ДАННЫХ
-// ============================================================
 async function loadPhotos() {
   const res = await fetch('photos.json', { cache: 'no-store' });
   if (!res.ok) throw new Error('photos.json не найден');
   const data = await res.json();
-  PHOTOS = data.map(p => ({
+  const list = Array.isArray(data) ? data : (data.photos || []);
+  PHOTOS = list.map(p => ({
     ...p,
-    src: p.src || makePlaceholder(p.title + p.id, p.title),
+    src: p.src || makePlaceholder((p.title || '') + p.id, p.title || String(p.id)),
   }));
+  publicPhotos = PHOTOS;
+}
+
+// ============================================================
+// СОРТИРОВКА
+// ============================================================
+function sortByAdded(photos) {
+  return [...photos].sort((a, b) => {
+    const da = a.added ? new Date(a.added).getTime() : 0;
+    const db = b.added ? new Date(b.added).getTime() : 0;
+    return db - da;
+  });
+}
+
+// ============================================================
+// ФИЛЬТРАЦИЯ
+// ============================================================
+function filterByDate(photos, year, month) {
+  return photos.filter(p => {
+    const d = parseDate(p.date);
+    if (!d) return false;
+    if (year && d.year !== year) return false;
+    if (month && d.month !== month) return false;
+    return true;
+  });
+}
+
+function groupByYear(photos) {
+  const map = new Map();
+  photos.forEach(p => {
+    const d = parseDate(p.date);
+    if (!d) return;
+    if (!map.has(d.year)) map.set(d.year, new Set());
+    map.get(d.year).add(d.month);
+  });
+  return [...map.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([year, months]) => ({
+      year,
+      months: [...months].sort((a, b) => b - a)
+    }));
 }
 
 // ============================================================
@@ -137,7 +180,7 @@ const lazyObserver = 'IntersectionObserver' in window
   : null;
 
 // ============================================================
-// РЕНДЕР
+// РЕНДЕР КАРТОЧКИ
 // ============================================================
 function isNew(photo) {
   if (!photo.added) return false;
@@ -149,12 +192,11 @@ function renderCard(photo) {
   const newBadge = isNew(photo) ? '<span class="badge-new">Новое</span>' : '';
   return `
     <button class="archive-item" data-id="${photo.id}">
-      <span class="tag">${photo.tag}</span>
       ${newBadge}
-      <img data-src="${photo.src}" alt="${photo.title}" loading="lazy" decoding="async">
+      <img data-src="${photo.src}" alt="${photo.title || ''}" loading="lazy" decoding="async">
       <div class="meta">
-        <div class="date">${photo.date}</div>
-        <div class="title">${photo.title}</div>
+        <div class="date">${photo.date || ''}</div>
+        <div class="title">${photo.title || ''}</div>
       </div>
     </button>
   `;
@@ -180,45 +222,91 @@ function updateCount(id, n) {
 }
 
 // ============================================================
-// КОНТЕНТ
+// ФИЛЬТРЫ (годы + месяцы)
 // ============================================================
-let publicPhotos = [];
-let currentLightboxIndex = -1;
-let currentLightboxList = [];
+function renderFilters() {
+  const container = document.getElementById('filters');
+  if (!container) return;
 
-function renderAll() {
-  // Только публичные (приватные — отдельная страница)
-  publicPhotos = sortByDate(PHOTOS.filter(p => !p.private));
+  const years = groupByYear(publicPhotos);
+  let html = '';
 
-  renderGrid('grid-all', publicPhotos);
-  renderGrid('grid-work', sortByDate(publicPhotos.filter(p => p.cat === 'work')));
-  renderGrid('grid-life', sortByDate(publicPhotos.filter(p => p.cat === 'life')));
-  renderGrid('grid-friends', sortByDate(publicPhotos.filter(p => p.cat === 'friends')));
+  // Кнопка «Все»
+  const allActive = currentYear === null;
+  html += `<button class="filter ${allActive ? 'active' : ''}" data-year="">Все</button>`;
 
-  updateCount('count-all', publicPhotos.length);
-  updateCount('count-work', publicPhotos.filter(p => p.cat === 'work').length);
-  updateCount('count-life', publicPhotos.filter(p => p.cat === 'life').length);
-  updateCount('count-friends', publicPhotos.filter(p => p.cat === 'friends').length);
+  years.forEach(({ year, months }) => {
+    const isYearActive = currentYear === year;
+    html += `<button class="filter ${isYearActive ? 'active' : ''}" data-year="${year}">${year}</button>`;
+  });
+
+  // Если выбран год — показываем месяцы отдельным рядом
+  if (currentYear) {
+    const entry = years.find(y => y.year === currentYear);
+    if (entry) {
+      html += '<div class="months-row">';
+      html += `<button class="filter month ${currentMonth === null ? 'active' : ''}" data-year="${currentYear}" data-month="">Весь год</button>`;
+      entry.months.forEach(m => {
+        const isMActive = currentMonth === m;
+        html += `<button class="filter month ${isMActive ? 'active' : ''}" data-year="${currentYear}" data-month="${m}">${MONTHS_RU[m - 1]}</button>`;
+      });
+      html += '</div>';
+    }
+  }
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('button[data-year]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const y = btn.dataset.year ? Number(btn.dataset.year) : null;
+      const m = btn.dataset.month ? Number(btn.dataset.month) : null;
+
+      if (y === null) {
+        currentYear = null;
+        currentMonth = null;
+      } else if (y === currentYear && m === null && btn.classList.contains('month') === false) {
+        // Клик по активному году — сброс
+        if (currentMonth === null) {
+          currentYear = null;
+          currentMonth = null;
+        } else {
+          currentMonth = null;
+        }
+      } else {
+        currentYear = y;
+        currentMonth = m;
+      }
+      applyFilters();
+    });
+  });
+}
+
+function applyFilters() {
+  let filtered = publicPhotos;
+  if (currentYear) {
+    filtered = filterByDate(filtered, currentYear, currentMonth);
+  }
+  const sorted = sortByAdded(filtered);
+  renderGrid('grid-all', sorted);
+  updateCount('count-all', sorted.length);
+  renderFilters();
 }
 
 // ============================================================
 // РОУТИНГ
 // ============================================================
-const pages = ['all', 'work', 'life', 'friends', 'about'];
+const pages = ['all', 'about'];
 
 function showPage(name) {
   if (!pages.includes(name)) name = 'all';
-
   $$('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + name);
   if (target) target.classList.add('active');
-
   $$('#nav a').forEach(a => {
     if (a.dataset.page) {
       a.classList.toggle('active', a.dataset.page === name);
     }
   });
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -242,22 +330,19 @@ const lightboxPrev = $('#lightbox-prev');
 const lightboxNext = $('#lightbox-next');
 const lightboxDownload = $('#lightbox-download');
 
+let currentLightboxIndex = -1;
+let currentLightboxList = [];
+
 function getCurrentList() {
-  const activePage = $('.page.active');
-  if (!activePage) return publicPhotos;
-  if (activePage.id === 'page-work')    return sortByDate(publicPhotos.filter(p => p.cat === 'work'));
-  if (activePage.id === 'page-life')    return sortByDate(publicPhotos.filter(p => p.cat === 'life'));
-  if (activePage.id === 'page-friends') return sortByDate(publicPhotos.filter(p => p.cat === 'friends'));
-  const activeFilter = $('.filter.active');
-  if (activeFilter && activeFilter.dataset.filter !== 'all') {
-    return sortByDate(publicPhotos.filter(p => p.cat === activeFilter.dataset.filter));
+  if (currentYear) {
+    return sortByAdded(filterByDate(publicPhotos, currentYear, currentMonth));
   }
-  return publicPhotos;
+  return sortByAdded(publicPhotos);
 }
 
 function openLightbox(id) {
   currentLightboxList = getCurrentList();
-  currentLightboxIndex = currentLightboxList.findIndex(p => p.id === Number(id));
+  currentLightboxIndex = currentLightboxList.findIndex(p => String(p.id) === String(id));
   if (currentLightboxIndex < 0) return;
   showLightboxPhoto(currentLightboxList[currentLightboxIndex]);
   lightbox.classList.add('open');
@@ -280,15 +365,15 @@ function preloadNeighbors() {
 
 function showLightboxPhoto(photo) {
   lightboxImg.src = photo.src;
-  lightboxImg.alt = photo.title;
-  lightboxDate.textContent = photo.date;
-  lightboxTitle.textContent = photo.title;
+  lightboxImg.alt = photo.title || '';
+  lightboxDate.textContent = photo.date || '';
+  lightboxTitle.textContent = photo.title || '';
   if (photo.src.startsWith('data:')) {
     lightboxDownload.removeAttribute('href');
     lightboxDownload.style.display = 'none';
   } else {
     lightboxDownload.href = photo.src;
-    lightboxDownload.setAttribute('download', photo.title + '.jpg');
+    lightboxDownload.setAttribute('download', (photo.title || 'photo') + '.jpg');
     lightboxDownload.style.display = 'inline-flex';
   }
 }
@@ -331,34 +416,16 @@ document.addEventListener('keydown', e => {
 });
 
 // ============================================================
-// ФИЛЬТРЫ
-// ============================================================
-$$('.filter').forEach(btn => {
-  btn.addEventListener('click', () => {
-    $$('.filter').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const cat = btn.dataset.filter;
-    const filtered = cat === 'all'
-      ? publicPhotos
-      : sortByDate(publicPhotos.filter(p => p.cat === cat));
-    renderGrid('grid-all', filtered);
-    updateCount('count-all', filtered.length);
-  });
-});
-
-// ============================================================
-// ГОД
-// ============================================================
-document.getElementById('year').textContent = new Date().getFullYear();
-
-// ============================================================
 // СТАРТ
 // ============================================================
+const yearEl = document.getElementById('year');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
+
 (async function init() {
   startProgress();
   try {
     await loadPhotos();
-    renderAll();
+    applyFilters();
     handleHash();
   } catch (err) {
     console.error(err);

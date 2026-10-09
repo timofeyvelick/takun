@@ -6,60 +6,127 @@
 <title>Админка — takun.space</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #dceafa;
+    --card: #ffffff;
+    --text: #0a1b2e;
+    --text-muted: #5a6a7e;
+    --accent: #247ad6;
+    --accent-hover: #1e6ac0;
+    --border: #c9d6e5;
+    --success-bg: #e6f7ed;
+    --success-text: #1a7a3a;
+    --error-bg: #fde8e8;
+    --error-text: #b91c1c;
+    --info-bg: #e8f0fa;
+    --info-text: #247ad6;
+  }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #dceafa;
-    color: #0a1b2e;
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
   }
+
   .card {
-    background: #fff;
+    background: var(--card);
     border-radius: 24px;
     padding: 48px;
     max-width: 560px;
     width: 100%;
     box-shadow: 0 4px 24px rgba(10, 27, 46, 0.08);
   }
-  h1 { font-size: 24px; margin-bottom: 8px; }
-  .subtitle { color: #5a6a7e; font-size: 14px; margin-bottom: 32px; }
-  .field { margin-bottom: 20px; }
-  label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
-  input, select, textarea {
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  .field {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  select {
     width: 100%;
     padding: 12px 16px;
-    border: 1px solid #c9d6e5;
+    border: 1px solid var(--border);
     border-radius: 12px;
     font-size: 15px;
     font-family: inherit;
     background: #fff;
+    color: var(--text);
     transition: border-color 0.2s;
   }
-  input:focus, select:focus, textarea:focus {
+
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  select:focus {
     outline: none;
-    border-color: #247ad6;
+    border-color: var(--accent);
   }
-  textarea { resize: vertical; min-height: 80px; }
+
+  input:disabled,
+  select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .file-input {
     padding: 32px 24px;
-    border: 2px dashed #c9d6e5;
+    border: 2px dashed var(--border);
     border-radius: 12px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
     display: block;
   }
-  .file-input:hover { border-color: #247ad6; background: #f5faff; }
-  .file-input input { display: none; }
-  .file-input .selected { color: #247ad6; font-weight: 500; }
-  .file-input .hint { color: #5a6a7e; font-size: 13px; margin-top: 8px; }
+
+  .file-input:hover {
+    border-color: var(--accent);
+    background: #f5faff;
+  }
+
+  .file-input input[type="file"] {
+    display: none;
+  }
+
+  .file-input .selected {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .file-input .hint {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
   button {
     width: 100%;
     padding: 14px;
-    background: #247ad6;
+    background: var(--accent);
     color: #fff;
     border: none;
     border-radius: 100px;
@@ -69,19 +136,33 @@
     margin-top: 8px;
     transition: all 0.2s;
   }
-  button:hover:not(:disabled) { filter: brightness(1.1); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  button:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .status {
     margin-top: 16px;
     padding: 12px 16px;
     border-radius: 12px;
     font-size: 14px;
-    display: none;
     line-height: 1.5;
+    display: none;
   }
-  .status.success { display: block; background: #e6f7ed; color: #1a7a3a; }
-  .status.error { display: block; background: #fde8e8; color: #b91c1c; }
-  .status.info { display: block; background: #e8f0fa; color: #247ad6; }
+
+  .status.success { display: block; background: var(--success-bg); color: var(--success-text); }
+  .status.error   { display: block; background: var(--error-bg);   color: var(--error-text); }
+  .status.info    { display: block; background: var(--info-bg);    color: var(--info-text); }
+
+  @media (max-width: 640px) {
+    .card { padding: 32px 24px; }
+    h1 { font-size: 20px; }
+  }
 </style>
 </head>
 <body>
@@ -89,24 +170,24 @@
   <h1>Загрузка фото</h1>
   <p class="subtitle">Для takun.space</p>
 
-  <form id="uploadForm">
+  <form id="uploadForm" novalidate>
     <div class="field">
-      <label>Фото</label>
+      <label for="photo">Фото</label>
       <label class="file-input" for="photo">
-        <input type="file" id="photo" accept="image/*" required>
+        <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp" required>
         <span id="fileName">Нажмите, чтобы выбрать файл</span>
         <div class="hint">JPG, PNG, WebP — до 10 МБ</div>
       </label>
     </div>
 
     <div class="field">
-      <label>Название</label>
-      <input type="text" id="title" placeholder="Например: Закат на море" required>
+      <label for="title">Название</label>
+      <input type="text" id="title" name="title" placeholder="Например: Закат на море" required>
     </div>
 
     <div class="field">
-      <label>Категория</label>
-      <select id="cat">
+      <label for="cat">Категория</label>
+      <select id="cat" name="cat">
         <option value="life">Жизнь</option>
         <option value="work">Работа</option>
         <option value="friends">Друзья</option>
@@ -115,73 +196,140 @@
     </div>
 
     <div class="field">
-      <label>Дата (текстом)</label>
-      <input type="text" id="date" placeholder="Например: Май 2025" required>
+      <label for="date">Дата (текстом)</label>
+      <input type="text" id="date" name="date" placeholder="Например: Май 2025" required>
     </div>
 
     <div class="field">
-      <label>Куда загрузить</label>
-      <select id="target">
+      <label for="target">Куда загрузить</label>
+      <select id="target" name="target">
         <option value="public">Публичный архив</option>
         <option value="private">Приватный раздел</option>
       </select>
     </div>
 
+    <div class="field">
+      <label for="password">Пароль администратора</label>
+      <input type="password" id="password" name="password" placeholder="Введите пароль" autocomplete="current-password" required>
+    </div>
+
     <button type="submit" id="submitBtn">Загрузить</button>
-    <div class="status" id="status"></div>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
   </form>
 </div>
 
 <script>
+  const form = document.getElementById('uploadForm');
   const fileInput = document.getElementById('photo');
   const fileName = document.getElementById('fileName');
-  const form = document.getElementById('uploadForm');
   const submitBtn = document.getElementById('submitBtn');
   const status = document.getElementById('status');
 
+  const MAX_SIZE = 10 * 1024 * 1024; // 10 МБ
+
+  // Показ имени выбранного файла
   fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 0) {
-      fileName.textContent = fileInput.files[0].name;
+      const f = fileInput.files[0];
+      fileName.textContent = f.name + ' (' + (f.size / 1024).toFixed(0) + ' КБ)';
       fileName.classList.add('selected');
+    } else {
+      fileName.textContent = 'Нажмите, чтобы выбрать файл';
+      fileName.classList.remove('selected');
     }
   });
 
+  // Показ статуса
+  function showStatus(type, text) {
+    status.className = 'status ' + type;
+    status.textContent = text;
+  }
+
+  function clearStatus() {
+    status.className = 'status';
+    status.textContent = '';
+  }
+
+  // Отправка формы
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    clearStatus();
+
+    // Валидация
+    if (!fileInput.files || fileInput.files.length === 0) {
+      showStatus('error', 'Выберите файл');
+      return;
+    }
+    const file = fileInput.files[0];
+
+    if (file.size > MAX_SIZE) {
+      showStatus('error', 'Файл больше 10 МБ. Сожмите его и попробуйте снова.');
+      return;
+    }
+
+    const title = document.getElementById('title').value.trim();
+    if (!title) {
+      showStatus('error', 'Введите название');
+      return;
+    }
+
+    const date = document.getElementById('date').value.trim();
+    if (!date) {
+      showStatus('error', 'Введите дату (например: Май 2025)');
+      return;
+    }
+
+    const password = document.getElementById('password').value;
+    if (!password) {
+      showStatus('error', 'Введите пароль администратора');
+      return;
+    }
+
+    // Блокируем форму
     submitBtn.disabled = true;
-    status.className = 'status info';
-    status.textContent = 'Загрузка...';
+    submitBtn.textContent = 'Загрузка...';
+    showStatus('info', 'Отправка файла на сервер...');
 
     try {
       const formData = new FormData();
-      formData.append('photo', fileInput.files[0]);
-      formData.append('title', document.getElementById('title').value);
+      formData.append('photo', file);
+      formData.append('title', title);
       formData.append('cat', document.getElementById('cat').value);
-      formData.append('date', document.getElementById('date').value);
+      formData.append('date', date);
       formData.append('target', document.getElementById('target').value);
+      formData.append('password', password);
 
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = { error: 'Сервер вернул неожиданный ответ (HTTP ' + res.status + ')' };
+      }
 
-      if (res.ok) {
-        status.className = 'status success';
-        status.textContent = 'Фото загружено. Обновите страницу архива через минуту.';
+      if (res.ok && data.ok) {
+        showStatus(
+          'success',
+          'Фото загружено: ' + data.filename +
+          '. Автор: ' + (data.uploaded_by || 'admin') +
+          '. Через минуту оно появится в архиве.'
+        );
+        // Сбрасываем форму
         form.reset();
         fileName.textContent = 'Нажмите, чтобы выбрать файл';
         fileName.classList.remove('selected');
       } else {
-        status.className = 'status error';
-        status.textContent = data.error || 'Ошибка загрузки';
+        showStatus('error', data.error || 'Ошибка загрузки (HTTP ' + res.status + ')');
       }
     } catch (err) {
-      status.className = 'status error';
-      status.textContent = 'Сетевая ошибка: ' + err.message;
+      showStatus('error', 'Сетевая ошибка: ' + err.message);
     } finally {
       submitBtn.disabled = false;
+      submitBtn.textContent = 'Загрузить';
     }
   });
 </script>

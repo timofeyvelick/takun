@@ -25,9 +25,6 @@
 
     <nav id="nav">
       <a href="#all" data-page="all">Все</a>
-      <a href="#work" data-page="work">Работа</a>
-      <a href="#life" data-page="life">Жизнь</a>
-      <a href="#friends" data-page="friends">Друзья</a>
       <a href="#about" data-page="about">О сайте</a>
       <a href="/private.html" class="nav-private">Приватное</a>
       <a href="/admin.html" class="nav-add">+ Добавить фото</a>
@@ -61,13 +58,7 @@
       <p>Фотографии, работы и моменты, которые хочется сохранить.</p>
     </div>
 
-    <div class="filters">
-      <button class="filter active" data-filter="all">Все</button>
-      <button class="filter" data-filter="work">Работа</button>
-      <button class="filter" data-filter="life">Жизнь</button>
-      <button class="filter" data-filter="friends">Друзья</button>
-      <button class="filter" data-filter="travel">Путешествия</button>
-    </div>
+    <div class="filters" id="filters"></div>
 
     <div class="section-title">
       <h2>Публичное</h2>
@@ -75,27 +66,6 @@
     </div>
 
     <div class="archive-grid" id="grid-all"></div>
-  </section>
-
-  <!-- РАБОТА -->
-  <section class="page" id="page-work">
-    <div class="hero glass"><h1>Работа</h1><p>Проекты, эскизы и процессы.</p></div>
-    <div class="section-title"><h2>Проекты</h2><span class="count" id="count-work">0</span></div>
-    <div class="archive-grid" id="grid-work"></div>
-  </section>
-
-  <!-- ЖИЗНЬ -->
-  <section class="page" id="page-life">
-    <div class="hero glass"><h1>Жизнь</h1><p>Повседневные кадры и воспоминания.</p></div>
-    <div class="section-title"><h2>Моменты</h2><span class="count" id="count-life">0</span></div>
-    <div class="archive-grid" id="grid-life"></div>
-  </section>
-
-  <!-- ДРУЗЬЯ -->
-  <section class="page" id="page-friends">
-    <div class="hero glass"><h1>Друзья</h1><p>Люди, которые рядом.</p></div>
-    <div class="section-title"><h2>Встречи</h2><span class="count" id="count-friends">0</span></div>
-    <div class="archive-grid" id="grid-friends"></div>
   </section>
 
   <!-- О САЙТЕ -->
@@ -109,7 +79,7 @@
 
       <p>Это мой интернет-архив — личное место в сети, где я собираю то, что хочу сохранить. Здесь нет рекламы, алгоритмов и бесконечной ленты. Только кадры, которые для меня что-то значат.</p>
 
-      <p><strong>Что внутри.</strong> Четыре публичных раздела: <em>Работа</em> — проекты, эскизы и процессы. <em>Жизнь</em> — повседневные моменты и плёночные кадры. <em>Друзья</em> — люди, которые рядом. <em>Путешествия</em> — места, куда занесло.</p>
+      <p><strong>Что внутри.</strong> Фотографии, сгруппированные по годам и месяцам. Листай по времени — от новых к старым.</p>
 
       <p><strong>Приватный раздел.</strong> Часть архива закрыта — там фотографии, которые я не хочу показывать всем. Если ты меня знаешь — открой <a href="/private.html">Приватное</a> и оставь заявку на доступ.</p>
 

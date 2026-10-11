@@ -12,7 +12,7 @@
   --accent: #247ad6;
   --accent-hover: #1e6ac0;
   --border: rgba(10, 27, 46, 0.1);
-  --dropdown-bg: rgba(255, 255, 255, 0.9);
+  --dropdown-bg: rgba(255, 255, 255, 0.96);
   --radius: 20px;
   --transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -105,7 +105,6 @@ header {
 }
 .logo:hover { text-decoration: none; opacity: 0.8; }
 
-/* Скролл-контейнер навигации */
 .nav-scroll {
   flex: 1;
   overflow-x: auto;
@@ -186,7 +185,6 @@ html[data-theme="dark"] .nav-btn:hover {
   text-decoration: none;
 }
 
-/* Стрелки скролла */
 .scroll-arrow {
   width: 32px;
   height: 32px;
@@ -304,6 +302,12 @@ html[data-theme="dark"] .dropdown-menu button:hover {
   background: var(--accent);
 }
 
+/* Фиксированный дропдаун (для годов) */
+.year-dropdown {
+  position: fixed;
+  z-index: 300;
+}
+
 .dropdown-arrow {
   display: inline-block;
   width: 0;
@@ -312,10 +316,6 @@ html[data-theme="dark"] .dropdown-menu button:hover {
   border-right: 4px solid transparent;
   border-top: 5px solid currentColor;
   transition: transform 0.2s;
-}
-
-.dropdown.open .dropdown-arrow {
-  transform: rotate(180deg);
 }
 
 /* ============================================================

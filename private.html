@@ -22,11 +22,13 @@
   <div class="header-inner">
     <a href="/" class="logo">takun.space</a>
 
-    <nav id="nav">
-      <a href="/">← На главную</a>
-    </nav>
+    <div class="nav-scroll">
+      <nav id="nav">
+        <a href="/">← На главную</a>
+      </nav>
+    </div>
 
-    <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему">
+    <button class="theme-toggle" id="theme-toggle" aria-label="Переключить тему" type="button">
       <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="4.2"></circle>
         <line x1="12" y1="2.5" x2="12" y2="5.5"></line>
@@ -53,10 +55,10 @@
       <p>Только для друзей и семьи.</p>
     </div>
 
-    <div class="filters" id="filters"></div>
+    <div class="filters" id="yearFilters"></div>
 
     <div class="section-title">
-      <h2>Личное</h2>
+      <h2 id="sectionTitle">Личное</h2>
       <span class="count" id="count-private">0</span>
     </div>
 
@@ -67,22 +69,21 @@
 
 <footer>takun.space · <span id="year"></span></footer>
 
-<!-- ЛАЙТБОКС -->
 <div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lightbox-close" aria-label="Закрыть">
+  <button class="lightbox-close" id="lightbox-close" aria-label="Закрыть" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <line x1="18" y1="6" x2="6" y2="18"></line>
       <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
   </button>
 
-  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Предыдущее">
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="Предыдущее" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="15 18 9 12 15 6"></polyline>
     </svg>
   </button>
 
-  <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Следующее">
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="Следующее" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="9 18 15 12 9 6"></polyline>
     </svg>

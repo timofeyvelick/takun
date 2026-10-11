@@ -748,7 +748,5 @@ footer {
   .archive-grid { grid-template-columns: 1fr 1fr; }
   .section-title .count { font-size: 12px; }
 }
-/* Временно скрыта */
-#catDropdown { display: none !important; }
-.nav-separator { display: none !important; }
+#catDropdown, .nav-separator { display: none !important; visibility: hidden !important; }
 }

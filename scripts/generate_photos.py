@@ -16,7 +16,6 @@ TAG_MAP = {
 
 
 def file_id(filename):
-    """Стабильный id из имени файла."""
     return int(hashlib.md5(filename.encode()).hexdigest()[:10], 16)
 
 

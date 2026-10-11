@@ -16,12 +16,11 @@ TAG_MAP = {
 
 
 def file_id(filename):
-    """Стабильный id из имени файла. Не меняется при перезагрузке."""
+    """Стабильный id из имени файла."""
     return int(hashlib.md5(filename.encode()).hexdigest()[:10], 16)
 
 
 def load_existing():
-    """Читает текущий photos.json (плоский массив)."""
     if not OUTPUT_FILE.exists():
         return {}
     try:
@@ -49,17 +48,14 @@ def get_photos(existing):
         src = f"photos/{file_path.name}"
         old = existing.get(src, {})
 
-        # id: сохраняем старый, иначе — hash от имени файла
         photo_id = old.get("id")
         if not isinstance(photo_id, int):
             photo_id = file_id(file_path.name)
 
-        # На случай коллизии — маловероятно
         while photo_id in used_ids:
             photo_id = file_id(file_path.name + str(photo_id))
         used_ids.add(photo_id)
 
-        # added: из старого JSON, иначе — дата модификации файла
         added = old.get("added")
         if not added:
             added = datetime.fromtimestamp(file_path.stat().st_mtime).isoformat()
@@ -67,7 +63,7 @@ def get_photos(existing):
         cat = old.get("cat", "life")
         tag = old.get("tag") or TAG_MAP.get(cat, "Разное")
 
-        photos.append({
+        photo = {
             "id": photo_id,
             "cat": cat,
             "tag": tag,
@@ -75,7 +71,10 @@ def get_photos(existing):
             "title": old.get("title", file_path.stem),
             "src": src,
             "added": added,
-        })
+            "uploaded_by": old.get("uploaded_by", ""),
+        }
+
+        photos.append(photo)
 
     photos.sort(key=lambda p: p.get("added", ""), reverse=True)
     return photos

@@ -9,6 +9,14 @@ const MONTHS_RU = [
   'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'
 ];
 
+const CATS = {
+  all: 'Все',
+  work: 'Работа',
+  life: 'Жизнь',
+  friends: 'Друзья',
+  travel: 'Путешествия'
+};
+
 // ============================================================
 // ПЛЕЙСХОЛДЕР
 // ============================================================
@@ -16,20 +24,13 @@ function makePlaceholder(seed, label) {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
   const abs = Math.abs(h);
-  const hue1 = 205 + (abs % 25);
-  const hue2 = 195 + ((abs >> 3) % 35);
-  const l1 = 55 + (abs % 15);
-  const l2 = 40 + ((abs >> 4) % 20);
-  const c1 = `hsl(${hue1}, 75%, ${l1}%)`;
-  const c2 = `hsl(${hue2}, 70%, ${l2}%)`;
+  const c1 = `hsl(${205 + (abs % 25)}, 75%, ${55 + (abs % 15)}%)`;
+  const c2 = `hsl(${195 + ((abs >> 3) % 35)}, 70%, ${40 + ((abs >> 4) % 20)}%)`;
   const angle = abs % 360;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      <linearGradient id="g" gradientTransform="rotate(${angle} 0.5 0.5)">
-        <stop offset="0%" stop-color="${c1}"/>
-        <stop offset="100%" stop-color="${c2}"/>
-      </linearGradient>
-    </defs>
+    <defs><linearGradient id="g" gradientTransform="rotate(${angle} 0.5 0.5)">
+      <stop offset="0%" stop-color="${c1}"/><stop offset="100%" stop-color="${c2}"/>
+    </linearGradient></defs>
     <rect width="800" height="600" fill="url(#g)"/>
     <text x="400" y="310" font-family="Manrope, sans-serif" font-size="42" font-weight="600"
           fill="rgba(255,255,255,0.85)" text-anchor="middle">${label}</text>
@@ -70,13 +71,15 @@ function initTheme() {
   applyTheme(prefersDark ? 'dark' : 'light');
 }
 
-$('#theme-toggle').addEventListener('click', () => {
-  const isDark = root.getAttribute('data-theme') === 'dark';
-  const next = isDark ? 'light' : 'dark';
-  applyTheme(next);
-  localStorage.setItem(THEME_KEY, next);
-});
-
+const themeToggle = $('#theme-toggle');
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    const next = isDark ? 'light' : 'dark';
+    applyTheme(next);
+    localStorage.setItem(THEME_KEY, next);
+  });
+}
 initTheme();
 
 // ============================================================
@@ -86,12 +89,14 @@ const progressBar = $('#progress-bar');
 let progressTimer = null;
 
 function startProgress() {
+  if (!progressBar) return;
   progressBar.classList.add('active');
   progressBar.style.width = '20%';
   clearTimeout(progressTimer);
   progressTimer = setTimeout(() => { progressBar.style.width = '70%'; }, 200);
 }
 function finishProgress() {
+  if (!progressBar) return;
   progressBar.style.width = '100%';
   clearTimeout(progressTimer);
   setTimeout(() => {
@@ -101,13 +106,18 @@ function finishProgress() {
 }
 
 // ============================================================
+// СОСТОЯНИЕ ФИЛЬТРОВ
+// ============================================================
+let currentCat = 'all';
+let currentYear = null;
+let currentMonth = null;
+
+// ============================================================
 // ДАННЫЕ
 // ============================================================
 const NEW_DAYS = 14;
 let PHOTOS = [];
 let publicPhotos = [];
-let currentYear = null;
-let currentMonth = null;
 
 async function loadPhotos() {
   const res = await fetch('photos.json', { cache: 'no-store' });
@@ -116,7 +126,7 @@ async function loadPhotos() {
   const list = Array.isArray(data) ? data : (data.photos || []);
   PHOTOS = list.map(p => ({
     ...p,
-    src: p.src || makePlaceholder((p.title || '') + p.id, p.title || String(p.id)),
+    src: p.src || makePlaceholder((p.title || '') + p.id, p.title || String(p.id))
   }));
   publicPhotos = PHOTOS;
 }
@@ -135,12 +145,15 @@ function sortByAdded(photos) {
 // ============================================================
 // ФИЛЬТРАЦИЯ
 // ============================================================
-function filterByDate(photos, year, month) {
+function filterPhotos(photos, cat, year, month) {
   return photos.filter(p => {
-    const d = parseDate(p.date);
-    if (!d) return false;
-    if (year && d.year !== year) return false;
-    if (month && d.month !== month) return false;
+    if (cat && cat !== 'all' && p.cat !== cat) return false;
+    if (year) {
+      const d = parseDate(p.date);
+      if (!d) return false;
+      if (d.year !== year) return false;
+      if (month && d.month !== month) return false;
+    }
     return true;
   });
 }
@@ -155,10 +168,7 @@ function groupByYear(photos) {
   });
   return [...map.entries()]
     .sort((a, b) => b[0] - a[0])
-    .map(([year, months]) => ({
-      year,
-      months: [...months].sort((a, b) => b - a)
-    }));
+    .map(([year, months]) => ({ year, months: [...months].sort((a, b) => b - a) }));
 }
 
 // ============================================================
@@ -190,8 +200,10 @@ function isNew(photo) {
 
 function renderCard(photo) {
   const newBadge = isNew(photo) ? '<span class="badge-new">Новое</span>' : '';
+  const tag = photo.tag ? `<span class="tag">${photo.tag}</span>` : '';
   return `
-    <button class="archive-item" data-id="${photo.id}">
+    <button class="archive-item" data-id="${photo.id}" type="button">
+      ${tag}
       ${newBadge}
       <img data-src="${photo.src}" alt="${photo.title || ''}" loading="lazy" decoding="async">
       <div class="meta">
@@ -221,76 +233,137 @@ function updateCount(id, n) {
   if (el) el.textContent = n + ' записей';
 }
 
+function updateSectionTitle() {
+  const el = document.getElementById('sectionTitle');
+  if (!el) return;
+  const catName = CATS[currentCat] || 'Все';
+  if (currentYear) {
+    const monthName = currentMonth ? MONTHS_RU[currentMonth - 1] : 'весь год';
+    el.textContent = `${catName} · ${currentYear} · ${monthName}`;
+  } else {
+    el.textContent = catName === 'Все' ? 'Публичное' : catName;
+  }
+}
+
 // ============================================================
-// ФИЛЬТРЫ (годы + месяцы)
+// ФИЛЬТРЫ ПО ГОДАМ
 // ============================================================
 function renderFilters() {
-  const container = document.getElementById('filters');
+  const container = document.getElementById('yearFilters');
   if (!container) return;
 
-  const years = groupByYear(publicPhotos);
-  let html = '';
+  // Годы строим по фото ТЕКУЩЕЙ категории
+  const catPhotos = filterPhotos(publicPhotos, currentCat, null, null);
+  const years = groupByYear(catPhotos);
 
-  // Кнопка «Все»
+  let html = '';
   const allActive = currentYear === null;
-  html += `<button class="filter ${allActive ? 'active' : ''}" data-year="">Все</button>`;
+  html += `<button class="filter ${allActive ? 'active' : ''}" data-year="" type="button">Все</button>`;
 
   years.forEach(({ year, months }) => {
-    const isYearActive = currentYear === year;
-    html += `<button class="filter ${isYearActive ? 'active' : ''}" data-year="${year}">${year}</button>`;
-  });
-
-  // Если выбран год — показываем месяцы отдельным рядом
-  if (currentYear) {
-    const entry = years.find(y => y.year === currentYear);
-    if (entry) {
-      html += '<div class="months-row">';
-      html += `<button class="filter month ${currentMonth === null ? 'active' : ''}" data-year="${currentYear}" data-month="">Весь год</button>`;
-      entry.months.forEach(m => {
-        const isMActive = currentMonth === m;
-        html += `<button class="filter month ${isMActive ? 'active' : ''}" data-year="${currentYear}" data-month="${m}">${MONTHS_RU[m - 1]}</button>`;
-      });
-      html += '</div>';
+    const isActive = currentYear === year;
+    if (isActive) {
+      // Активный год — это дропдаун с месяцами
+      html += `
+        <div class="dropdown open" data-dropdown="year">
+          <button class="filter active" data-year-toggle="${year}" type="button" aria-haspopup="true" aria-expanded="true">
+            ${year}
+            <span class="dropdown-arrow" aria-hidden="true"></span>
+          </button>
+          <div class="dropdown-menu" role="menu">
+            <button class="${currentMonth === null ? 'active' : ''}" data-month="" data-year="${year}" type="button">Весь год</button>
+            ${months.map(m => `
+              <button class="${currentMonth === m ? 'active' : ''}" data-month="${m}" data-year="${year}" type="button">
+                ${MONTHS_RU[m - 1]}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      html += `<button class="filter" data-year="${year}" type="button">${year}</button>`;
     }
-  }
+  });
 
   container.innerHTML = html;
 
+  // Обработчики
   container.querySelectorAll('button[data-year]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const y = btn.dataset.year ? Number(btn.dataset.year) : null;
-      const m = btn.dataset.month ? Number(btn.dataset.month) : null;
+      currentYear = Number(btn.dataset.year);
+      currentMonth = null;
+      applyFilters();
+    });
+  });
 
-      if (y === null) {
-        currentYear = null;
-        currentMonth = null;
-      } else if (y === currentYear && m === null && btn.classList.contains('month') === false) {
-        // Клик по активному году — сброс
-        if (currentMonth === null) {
-          currentYear = null;
-          currentMonth = null;
-        } else {
-          currentMonth = null;
-        }
-      } else {
-        currentYear = y;
-        currentMonth = m;
-      }
+  container.querySelectorAll('button[data-year-toggle]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dd = btn.closest('.dropdown');
+      if (dd) dd.classList.toggle('open');
+    });
+  });
+
+  container.querySelectorAll('button[data-month]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentYear = Number(btn.dataset.year);
+      currentMonth = btn.dataset.month ? Number(btn.dataset.month) : null;
       applyFilters();
     });
   });
 }
 
+// ============================================================
+// ПРИМЕНЕНИЕ ФИЛЬТРОВ
+// ============================================================
 function applyFilters() {
-  let filtered = publicPhotos;
-  if (currentYear) {
-    filtered = filterByDate(filtered, currentYear, currentMonth);
-  }
+  const filtered = filterPhotos(publicPhotos, currentCat, currentYear, currentMonth);
   const sorted = sortByAdded(filtered);
   renderGrid('grid-all', sorted);
   updateCount('count-all', sorted.length);
+  updateSectionTitle();
   renderFilters();
 }
+
+// ============================================================
+// КАТЕГОРИИ (дропдаун в шапке)
+// ============================================================
+function initCatDropdown() {
+  const dropdown = $('#catDropdown');
+  const btn = $('#catBtn');
+  const label = $('#catLabel');
+  if (!dropdown || !btn) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+    btn.setAttribute('aria-expanded', dropdown.classList.contains('open') ? 'true' : 'false');
+  });
+
+  dropdown.querySelectorAll('button[data-cat]').forEach(b => {
+    b.addEventListener('click', () => {
+      currentCat = b.dataset.cat;
+      currentYear = null;
+      currentMonth = null;
+
+      label.textContent = CATS[currentCat] || 'Все';
+      dropdown.querySelectorAll('button[data-cat]').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      dropdown.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+      applyFilters();
+    });
+  });
+}
+
+// Закрытие дропдаунов при клике вне
+document.addEventListener('click', () => {
+  $$('.dropdown.open').forEach(dd => {
+    dd.classList.remove('open');
+    const btn = dd.querySelector('[aria-expanded]');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  });
+});
 
 // ============================================================
 // РОУТИНГ
@@ -302,10 +375,8 @@ function showPage(name) {
   $$('.page').forEach(p => p.classList.remove('active'));
   const target = document.getElementById('page-' + name);
   if (target) target.classList.add('active');
-  $$('#nav a').forEach(a => {
-    if (a.dataset.page) {
-      a.classList.toggle('active', a.dataset.page === name);
-    }
+  $$('#nav a[data-page]').forEach(a => {
+    a.classList.toggle('active', a.dataset.page === name);
   });
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -317,6 +388,19 @@ function handleHash() {
 }
 
 window.addEventListener('hashchange', handleHash);
+
+// ============================================================
+// СКРОЛЛ ШАПКИ (мобильные)
+// ============================================================
+function initNavScroll() {
+  const navScroll = document.getElementById('navScroll');
+  const left = document.getElementById('scrollLeft');
+  const right = document.getElementById('scrollRight');
+  if (!navScroll) return;
+
+  if (left) left.addEventListener('click', () => navScroll.scrollBy({ left: -150, behavior: 'smooth' }));
+  if (right) right.addEventListener('click', () => navScroll.scrollBy({ left: 150, behavior: 'smooth' }));
+}
 
 // ============================================================
 // ЛАЙТБОКС
@@ -334,10 +418,7 @@ let currentLightboxIndex = -1;
 let currentLightboxList = [];
 
 function getCurrentList() {
-  if (currentYear) {
-    return sortByAdded(filterByDate(publicPhotos, currentYear, currentMonth));
-  }
-  return sortByAdded(publicPhotos);
+  return sortByAdded(filterPhotos(publicPhotos, currentCat, currentYear, currentMonth));
 }
 
 function openLightbox(id) {
@@ -421,6 +502,9 @@ document.addEventListener('keydown', e => {
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
+initCatDropdown();
+initNavScroll();
+
 (async function init() {
   startProgress();
   try {
@@ -429,8 +513,8 @@ if (yearEl) yearEl.textContent = new Date().getFullYear();
     handleHash();
   } catch (err) {
     console.error(err);
-    document.querySelector('main').innerHTML =
-      '<p style="text-align:center;padding:60px;color:#4a637d">Ошибка загрузки архива</p>';
+    const main = document.querySelector('main');
+    if (main) main.innerHTML = '<p style="text-align:center;padding:60px;color:#4a637d">Ошибка загрузки архива</p>';
   } finally {
     finishProgress();
   }

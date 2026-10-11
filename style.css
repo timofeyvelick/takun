@@ -1,5 +1,5 @@
 /* ============================================================
-   ОСНОВА
+   ПЕРЕМЕННЫЕ
    ============================================================ */
 :root {
   --bg: #dceafa;
@@ -12,8 +12,8 @@
   --accent: #247ad6;
   --accent-hover: #1e6ac0;
   --border: rgba(10, 27, 46, 0.1);
+  --dropdown-bg: rgba(255, 255, 255, 0.9);
   --radius: 20px;
-  --radius-sm: 12px;
   --transition: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -28,13 +28,12 @@ html[data-theme="dark"] {
   --accent: #4a9eff;
   --accent-hover: #3a8eef;
   --border: rgba(255, 255, 255, 0.1);
+  --dropdown-bg: rgba(30, 40, 60, 0.96);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
-  min-height: 100vh;
-}
+html, body { min-height: 100vh; }
 
 body {
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -51,6 +50,8 @@ a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 img { display: block; max-width: 100%; }
+
+button { font-family: inherit; }
 
 /* ============================================================
    ПРОГРЕСС-БАР
@@ -78,12 +79,12 @@ header {
 }
 
 .header-inner {
-  max-width: 1200px;
+  max-width: 1300px;
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 10px 20px;
+  gap: 10px;
+  padding: 10px 16px;
   background: var(--card-bg);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -94,25 +95,40 @@ header {
 
 .logo {
   font-family: 'Unbounded', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text);
-  text-decoration: none;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
 }
 .logo:hover { text-decoration: none; opacity: 0.8; }
+
+/* Скролл-контейнер навигации */
+.nav-scroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  min-width: 0;
+}
+.nav-scroll::-webkit-scrollbar { display: none; }
 
 #nav {
   display: flex;
   align-items: center;
   gap: 4px;
-  flex: 1;
-  justify-content: center;
-  flex-wrap: wrap;
+  padding: 2px 0;
+  min-width: max-content;
 }
 
-#nav a {
-  padding: 8px 16px;
+#nav a,
+.nav-btn {
+  padding: 8px 14px;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-muted);
@@ -120,41 +136,82 @@ header {
   transition: var(--transition);
   text-decoration: none;
   white-space: nowrap;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
-#nav a:hover {
+#nav a:hover,
+.nav-btn:hover {
   color: var(--text);
   background: rgba(10, 27, 46, 0.05);
   text-decoration: none;
 }
 
-html[data-theme="dark"] #nav a:hover {
+html[data-theme="dark"] #nav a:hover,
+html[data-theme="dark"] .nav-btn:hover {
   background: rgba(255, 255, 255, 0.06);
 }
 
-#nav a.active {
+#nav a.active,
+.nav-btn.active {
   color: #fff;
   background: var(--accent);
 }
 
-.nav-private { /* обычная ссылка */ }
+.nav-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
 
 .nav-add {
-  margin-left: 12px;
-  padding: 8px 18px !important;
-  background: var(--accent);
+  padding: 8px 16px !important;
+  background: var(--accent) !important;
   color: #fff !important;
   border-radius: 100px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  transition: var(--transition);
   white-space: nowrap;
 }
+
 .nav-add:hover {
+  filter: brightness(1.1);
   background: var(--accent-hover) !important;
-  transform: translateY(-1px);
   text-decoration: none;
 }
+
+/* Стрелки скролла */
+.scroll-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+
+.scroll-arrow:hover {
+  background: rgba(10, 27, 46, 0.06);
+  color: var(--text);
+}
+
+html[data-theme="dark"] .scroll-arrow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.scroll-arrow svg { width: 16px; height: 16px; }
 
 .theme-toggle {
   width: 40px;
@@ -186,6 +243,82 @@ html[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
 html[data-theme="dark"] .theme-toggle .icon-moon { display: block; }
 
 /* ============================================================
+   ДРОПДАУН
+   ============================================================ */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  padding: 8px;
+  background: var(--dropdown-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(10, 27, 46, 0.15);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: var(--transition);
+  z-index: 200;
+}
+
+.dropdown.open .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 9px 14px;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: left;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.dropdown-menu button:hover {
+  color: var(--text);
+  background: rgba(10, 27, 46, 0.05);
+}
+
+html[data-theme="dark"] .dropdown-menu button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dropdown-menu button.active {
+  color: #fff;
+  background: var(--accent);
+}
+
+.dropdown-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transition: transform 0.2s;
+}
+
+.dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* ============================================================
    MAIN
    ============================================================ */
 main {
@@ -202,9 +335,6 @@ main {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ============================================================
-   СТЕКЛО (glass)
-   ============================================================ */
 .glass {
   background: var(--card-bg);
   backdrop-filter: blur(24px) saturate(180%);
@@ -218,7 +348,7 @@ main {
    HERO
    ============================================================ */
 .hero {
-  padding: 60px 40px;
+  padding: 56px 40px;
   margin-bottom: 24px;
   text-align: center;
 }
@@ -254,7 +384,6 @@ main {
   padding: 9px 18px;
   font-size: 14px;
   font-weight: 500;
-  font-family: inherit;
   color: var(--text-muted);
   background: var(--card-bg);
   backdrop-filter: blur(12px);
@@ -264,6 +393,10 @@ main {
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
 }
 
 .filter:hover {
@@ -277,25 +410,6 @@ main {
   border-color: var(--accent);
 }
 
-/* Ряд месяцев под годом */
-.months-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  width: 100%;
-}
-
-.filter.month {
-  font-size: 13px;
-  padding: 7px 14px;
-  opacity: 0.9;
-}
-
-.filter.month.active { opacity: 1; }
-
 /* ============================================================
    ЗАГОЛОВОК СЕКЦИИ
    ============================================================ */
@@ -305,6 +419,7 @@ main {
   justify-content: space-between;
   margin-bottom: 20px;
   padding: 0 4px;
+  gap: 16px;
 }
 
 .section-title h2 {
@@ -314,13 +429,14 @@ main {
 }
 
 .section-title .count {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-muted);
   padding: 4px 12px;
   background: var(--card-bg);
   backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
   border-radius: 100px;
+  white-space: nowrap;
 }
 
 /* ============================================================
@@ -337,7 +453,7 @@ main {
   border: none;
   padding: 0;
   background: var(--card-bg);
-  border-radius: var(--radius);
+  border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
@@ -367,7 +483,7 @@ main {
   top: 12px;
   left: 12px;
   padding: 5px 12px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: #fff;
   background: rgba(10, 27, 46, 0.55);
@@ -384,7 +500,7 @@ main {
   top: 12px;
   right: 12px;
   padding: 5px 12px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: #fff;
   background: var(--accent);
@@ -400,7 +516,7 @@ main {
   left: 0;
   right: 0;
   padding: 16px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.72));
   color: #fff;
   z-index: 1;
 }
@@ -567,22 +683,27 @@ footer {
 /* ============================================================
    АДАПТИВ
    ============================================================ */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  header { padding: 10px; }
+
   .header-inner {
-    padding: 8px 12px;
-    gap: 8px;
-    border-radius: 20px;
-    flex-wrap: wrap;
+    padding: 8px 10px;
+    gap: 6px;
+    border-radius: 100px;
   }
 
-  .logo { font-size: 14px; }
+  .logo { font-size: 13px; }
 
-  #nav { gap: 2px; }
-  #nav a { padding: 6px 10px; font-size: 12px; }
+  .scroll-arrow { display: flex; }
+
+  #nav a,
+  .nav-btn {
+    padding: 7px 12px;
+    font-size: 13px;
+  }
 
   .nav-add {
-    margin-left: 0;
-    padding: 6px 12px !important;
+    padding: 7px 12px !important;
     font-size: 12px;
   }
 
@@ -597,9 +718,10 @@ footer {
     gap: 10px;
   }
 
-  .archive-item .meta { padding: 10px; }
+  .archive-item .meta { padding: 12px; }
   .archive-item .meta .title { font-size: 13px; }
-  .archive-item .tag, .badge-new { font-size: 10px; padding: 4px 8px; }
+  .archive-item .tag,
+  .badge-new { font-size: 9px; padding: 4px 8px; }
 
   .lightbox-caption {
     flex-direction: column;
@@ -616,10 +738,13 @@ footer {
   .about-content { padding: 24px; font-size: 15px; }
 
   .filter { padding: 7px 14px; font-size: 13px; }
-  .filter.month { padding: 6px 12px; font-size: 12px; }
+
+  .section-title { flex-wrap: wrap; }
+  .section-title h2 { font-size: 18px; }
 }
 
 @media (max-width: 480px) {
   .hero h1 { font-size: 24px; }
   .archive-grid { grid-template-columns: 1fr 1fr; }
+  .section-title .count { font-size: 12px; }
 }
